@@ -32,5 +32,8 @@
   "bugs": {
     "url": "https://github.com/idanalyzer/id-analyzer-nodejs/issues"
   },
-  "homepage": "https://github.com/idanalyzer/id-analyzer-nodejs#readme"
+  "homepage": "https://github.com/idanalyzer/id-analyzer-nodejs#readme",
+  "dependencies": {
+    "axios": "^0.21.1"
+  }
 }

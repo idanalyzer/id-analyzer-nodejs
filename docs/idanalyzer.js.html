@@ -27,7 +27,7 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>const fs = require('fs');
-
+const axios = require('axios');
 
 function isValidURL(string) {
     let res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&amp;//=]*)/g);
@@ -81,12 +81,12 @@ class CoreAPI {
      */
     resetConfig()
     {
-        this.config = this._defaultConfig;
+        this.config = this._defaultConfig();
     }
 
     /**
      * Set OCR Accuracy
-     * @param {Number} accuracy 0 = Fast, 1 = Balanced, 2 = Accurate
+     * @param {number} accuracy 0 = Fast, 1 = Balanced, 2 = Accurate
      */
     setAccuracy(accuracy = 2)
     {
@@ -97,7 +97,7 @@ class CoreAPI {
 
     /**
      * Validate the document to check whether the document is authentic and has not been tampered, and set authentication module
-     * @param {Boolean} enabled Enable/Disable Document Authentication
+     * @param {boolean} enabled Enable/Disable Document Authentication
      * @param {*} module Module: 1, 2 or quick
      * @throws {Error}
      */
@@ -114,7 +114,7 @@ class CoreAPI {
 
     /**
      * Scale down the uploaded image before sending to OCR engine. Adjust this value to fine tune recognition accuracy on large full-resolution images. Set 0 to disable image resizing.
-     * @param {Number} maxScale 0 or 500~4000
+     * @param {number} maxScale 0 or 500~4000
      * @throws {Error}
      */
     setOCRImageResize(maxScale = 1500)
@@ -127,7 +127,7 @@ class CoreAPI {
 
     /**
      * Set the minimum confidence score to consider faces being identical
-     * @param {Number} threshold float between 0 to 1
+     * @param {number} threshold float between 0 to 1
      * @throws {Error}
      */
     setBiometricThreshold(threshold = 0.4)
@@ -142,9 +142,9 @@ class CoreAPI {
 
     /**
      * Generate cropped image of document and/or face, and set output format [url, base64]
-     * @param {Boolean} cropDocument Crop document
-     * @param {Boolean} cropFace Crop face
-     * @param {String} outputFormat url/base64
+     * @param {boolean} cropDocument Crop document
+     * @param {boolean} cropFace Crop face
+     * @param {string} outputFormat url/base64
      * @throws {Error}
      */
     enableImageOutput(cropDocument = false, cropFace = false, outputFormat = "url")
@@ -160,7 +160,7 @@ class CoreAPI {
 
     /**
      * Check if the names, document number and document type matches between the front and the back of the document when performing dual-side scan. If any information mismatches error 14 will be thrown.
-     * @param {Boolean} enabled
+     * @param {boolean} enabled
      */
     enableDualsideCheck(enabled = false)
     {
@@ -170,7 +170,7 @@ class CoreAPI {
 
     /**
      * Check if the document is still valid based on its expiry date.
-     * @param {Boolean} enabled Enable/Disable expiry check
+     * @param {boolean} enabled Enable/Disable expiry check
      */
     verifyExpiry(enabled = false)
     {
@@ -179,7 +179,7 @@ class CoreAPI {
 
     /**
      * Check if supplied document or personal number matches with document.
-     * @param {String} documentNumber Document or personal number requiring validation
+     * @param {string} documentNumber Document or personal number requiring validation
      * @throws {Error}
      */
     verifyDocumentNumber(documentNumber = "X1234567")
@@ -196,7 +196,7 @@ class CoreAPI {
 
     /**
      * Check if supplied name matches with document.
-     * @param {String} fullName Full name requiring validation
+     * @param {string} fullName Full name requiring validation
      * @throws {Error}
      */
     verifyName(fullName = "ELON MUSK")
@@ -211,7 +211,7 @@ class CoreAPI {
 
     /**
      * Check if supplied date of birth matches with document.
-     * @param {String} dob Date of birth in YYYY/MM/DD
+     * @param {string} dob Date of birth in YYYY/MM/DD
      * @throws {Error}
      */
     verifyDOB(dob = "1990/01/01")
@@ -231,7 +231,7 @@ class CoreAPI {
 
     /**
      * Check if the document holder is aged between the given range.
-     * @param {String} ageRange Age range, example: 18-40
+     * @param {string} ageRange Age range, example: 18-40
      * @throws {Error}
      */
     verifyAge(ageRange = "18-99")
@@ -251,7 +251,7 @@ class CoreAPI {
 
     /**
      * Check if supplied address matches with document.
-     * @param {String} address Address requiring validation
+     * @param {string} address Address requiring validation
      */
     verifyAddress(address = "123 Sample St, California, US")
     {
@@ -265,7 +265,7 @@ class CoreAPI {
 
     /**
      * Check if supplied postcode matches with document.
-     * @param {String} postcode Postcode requiring validation
+     * @param {string} postcode Postcode requiring validation
      */
     verifyPostcode(postcode = "90001")
     {
@@ -279,7 +279,7 @@ class CoreAPI {
 
     /**
      * Check if the document was issued by specified countries, if not error code 10 will be thrown. Separate multiple values with comma. For example "US,CA" would accept documents from United States and Canada.
-     * @param {String} countryCodes ISO ALPHA-2 Country Code separated by comma
+     * @param {string} countryCodes ISO ALPHA-2 Country Code separated by comma
      */
     restrictCountry(countryCodes = "US,CA,UK")
     {
@@ -293,7 +293,7 @@ class CoreAPI {
 
     /**
      * Check if the document was issued by specified state, if not error code 11 will be thrown. Separate multiple values with comma. For example "CA,TX" would accept documents from California and Texas.
-     * @param {String} states State full name or abbreviation separated by comma
+     * @param {string} states State full name or abbreviation separated by comma
      */
     restrictState(states = "CA,TX")
     {
@@ -307,7 +307,7 @@ class CoreAPI {
 
     /**
      * Check if the document was one of the specified types, if not error code 12 will be thrown. For example, "PD" would accept both passport and drivers license.
-     * @param {String} documentType P: Passport, D: Driver's License, I: Identity Card
+     * @param {string} documentType P: Passport, D: Driver's License, I: Identity Card
      */
     restrictType(documentType = "DIP")
     {
@@ -322,7 +322,7 @@ class CoreAPI {
 
     /**
      * Disable Visual OCR and read data from AAMVA Barcodes only
-     * @param {Boolean} enabled Enable/Disable Barcode Mode
+     * @param {boolean} enabled Enable/Disable Barcode Mode
      */
     enableBarcodeMode(enabled = false)
     {
@@ -333,10 +333,10 @@ class CoreAPI {
 
     /**
      * Save document image and parsed information in your secured vault. You can list, search and update document entries in your vault through Vault API or web portal.
-     * @param {Boolean} enabled Enable/Disable Vault
-     * @param {Boolean} saveUnrecognized Save document image in your vault even if the document cannot be recognized.
-     * @param {Boolean} noDuplicateImage Prevent duplicated images from being saved.
-     * @param {Boolean} autoMergeDocument Automatically merge images with same document number into a single entry inside vault.
+     * @param {boolean} enabled Enable/Disable Vault
+     * @param {boolean} saveUnrecognized Save document image in your vault even if the document cannot be recognized.
+     * @param {boolean} noDuplicateImage Prevent duplicated images from being saved.
+     * @param {boolean} autoMergeDocument Automatically merge images with same document number into a single entry inside vault.
      */
     enableVault(enabled = true, saveUnrecognized = false, noDuplicateImage = false, autoMergeDocument = false)
     {
@@ -349,11 +349,11 @@ class CoreAPI {
 
     /**
      * Add up to 5 custom strings that will be associated with the vault entry, this can be useful for filtering and searching entries.
-     * @param {String} data1 Custom data field 1
-     * @param {String} data2 Custom data field 2
-     * @param {String} data3 Custom data field 3
-     * @param {String} data4 Custom data field 4
-     * @param {String} data5 Custom data field 5
+     * @param {string} data1 Custom data field 1
+     * @param {string} data2 Custom data field 2
+     * @param {string} data3 Custom data field 3
+     * @param {string} data4 Custom data field 4
+     * @param {string} data5 Custom data field 5
      */
     setVaultData(data1 = "", data2 = "", data3 = "", data4 = "", data5 = "" )
     {
@@ -368,8 +368,8 @@ class CoreAPI {
 
     /**
      * Initialize Core API with an API key and optional region (US, EU)
-     * @param {String} apikey You API key
-     * @param {String} region US/EU
+     * @param {string} apikey You API key
+     * @param {string} region US/EU
      * @throws {Error}
      */
     constructor(apikey, region = "US")
@@ -390,12 +390,12 @@ class CoreAPI {
 
     /**
      * Scan an ID document with Core API, optionally specify document back image, face verification image, face verification video and video passcode
-     * @param {String} options.document_primary Front of Document (File path or URL)
-     * @param {String} options.document_secondary Back of Document (File path or URL)
-     * @param {String} options.biometric_photo Face Photo (File path or URL)
-     * @param {String} options.biometric_video Face Video (File path or URL)
-     * @param {String} options.biometric_video_passcode Face Video Passcode (4 Digit Number)
-     * @return {Object}
+     * @param {string} options.document_primary Front of Document (File path or URL)
+     * @param {string} options.document_secondary Back of Document (File path or URL)
+     * @param {string} options.biometric_photo Face Photo (File path or URL)
+     * @param {string} options.biometric_video Face Video (File path or URL)
+     * @param {string} options.biometric_video_passcode Face Video Passcode (4 Digit Number)
+     * @return {object}
      * @throws {Error}
      */
     scan(options){
@@ -446,29 +446,18 @@ class CoreAPI {
             }
         }
 
-
+        let apiURL = this.apiendpoint;
         return new Promise(function (resolve, reject) {
 
-            fetch(this.apiendpoint, {
-                method: 'post',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            }).then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
+            axios.post(apiURL, payload, {timeout: 60000, headers: { 'content-type': 'application/json' }}).then(function (response) {
+                resolve(response.data);
+            }).catch(function (error) {
+                if (error.response) {
                     reject(new Error('Connecting to API Server failed: HTTP '+  response.status));
+                }else{
+                    reject(new Error('Connecting to API Server failed: '+  error.code + " " + error.message));
                 }
-            }).then((responseJson) => {
-                resolve(responseJson);
-
-            }).catch((error) => {
-                reject(new Error('Connecting to API Server failed: '+  error.text()));
             });
-
 
         });
 
@@ -525,12 +514,12 @@ class DocuPass {
      */
     resetConfig()
     {
-        this.config = this._defaultConfig;
+        this.config = this._defaultConfig();
     }
 
     /**
      * Set max verification attempt per user
-     * @param {Number} max_attempt 1 to 10
+     * @param {number} max_attempt 1 to 10
      * @throws {Error}
      */
     setMaxAttempt(max_attempt = 1)
@@ -544,7 +533,7 @@ class DocuPass {
 
     /**
      * Set a custom string that will be sent back to your server's callback URL, and appended to redirection URLs as a query string. It is useful for identifying your user within your database. This value will be stored under customdata1 under Vault.
-     * @param {String} customID A string used to identify your customer internally
+     * @param {string} customID A string used to identify your customer internally
      */
     setCustomID(customID = "12345")
     {
@@ -553,7 +542,7 @@ class DocuPass {
 
     /**
      * Display a custom message to the user in the beginning of verification
-     * @param {String} message Plain text string
+     * @param {string} message Plain text string
      */
     setWelcomeMessage(message)
     {
@@ -563,7 +552,7 @@ class DocuPass {
 
     /**
      * Replace footer logo with your own logo
-     * @param {String} url Logo URL
+     * @param {string} url Logo URL
      */
     setLogo(url = "https://docupass.app/asset/logo1.png")
     {
@@ -573,7 +562,7 @@ class DocuPass {
 
     /**
      * Hide all branding logo
-     * @param {Boolean} hide
+     * @param {boolean} hide
      */
     hideBrandingLogo(hide = false)
     {
@@ -582,7 +571,7 @@ class DocuPass {
 
     /**
      * DocuPass automatically detects user device language and display corresponding language. Set this parameter to override automatic language detection.
-     * @param {String} language Language Code: en fr nl de es zh-TW zh-CN
+     * @param {string} language Language Code: en fr nl de es zh-TW zh-CN
      */
     setLanguage(language)
     {
@@ -593,7 +582,7 @@ class DocuPass {
 
     /**
      * Set server-side callback URL to receive verification results
-     * @param {String} url Callback URL
+     * @param {string} url Callback URL
      * @throws {Error}
      */
     setCallbackURL(url = "https://www.example.com/docupass_callback.php")
@@ -607,8 +596,8 @@ class DocuPass {
 
     /**
      * Redirect client browser to set URLs after verification. DocuPass reference code and customid will be appended to the end of URL, e.g. https://www.example.com/success.php?reference=XXXXXXXX&amp;customid=XXXXXXXX
-     * @param {String} successURL Redirection URL after verification succeeded
-     * @param {String} failURL Redirection URL after verification failed
+     * @param {string} successURL Redirection URL after verification succeeded
+     * @param {string} failURL Redirection URL after verification failed
      * @throws {Error}
      */
     setRedirectionURL(successURL = "https://www.example.com/success.php", failURL = "https://www.example.com/failed.php")
@@ -628,9 +617,9 @@ class DocuPass {
 
     /**
      * Validate the document to check whether the document is authentic and has not been tampered
-     * @param {Boolean} enabled Enable/Disable Document Authentication
+     * @param {boolean} enabled Enable/Disable Document Authentication
      * @param {*} module Module: 1, 2 or quick
-     * @param {Number} minimum_score Minimum score to pass verification
+     * @param {number} minimum_score Minimum score to pass verification
      * @throws {Error}
      */
     enableAuthentication(enabled = false, module = 2, minimum_score = 0.3)
@@ -653,9 +642,9 @@ class DocuPass {
 
     /**
      * Whether users will be required to submit a selfie photo or record selfie video for facial verification.
-     * @param {Boolean} enabled Enable/Disable Facial Biometric Verification
-     * @param {Number} verification_type 1 for photo verification, 2 for video verification
-     * @param {Number} threshold Minimum confidence score required to pass verification, value between 0 to 1
+     * @param {boolean} enabled Enable/Disable Facial Biometric Verification
+     * @param {number} verification_type 1 for photo verification, 2 for video verification
+     * @param {number} threshold Minimum confidence score required to pass verification, value between 0 to 1
      * @throws {Error}
      */
     enableFaceVerification(enabled = false, verification_type = 1, threshold = 0.4)
@@ -675,7 +664,7 @@ class DocuPass {
 
     /**
      * Enabling this parameter will allow multiple users to verify their identity through the same URL, a new DocuPass reference code will be generated for each user automatically.
-     * @param {Boolean} reusable Set true to allow unlimited verification for a single DocuPass session
+     * @param {boolean} reusable Set true to allow unlimited verification for a single DocuPass session
      */
     setReusable(reusable = false)
     {
@@ -688,9 +677,9 @@ class DocuPass {
 
     /**
      * Enable/Disable returning user uploaded document and face image in callback, and image data format.
-     * @param {Boolean} return_documentimage Return document image in callback data
-     * @param {Boolean} return_faceimage Return face image in callback data
-     * @param {Number} return_type Image type: 0=base64, 1=url
+     * @param {boolean} return_documentimage Return document image in callback data
+     * @param {boolean} return_faceimage Return face image in callback data
+     * @param {number} return_type Image type: 0=base64, 1=url
      */
     setCallbackImage(return_documentimage = true, return_faceimage = true, return_type = 1)
     {
@@ -704,10 +693,10 @@ class DocuPass {
 
     /**
      * Configure QR code generated for DocuPass Mobile and Live Mobile
-     * @param {String} foregroundColor Image foreground color HEX code
-     * @param {String} backgroundColor Image background color HEX code
-     * @param {Number} size Image size: 1 to 50
-     * @param {Number} margin Image margin: 1 to 50
+     * @param {string} foregroundColor Image foreground color HEX code
+     * @param {string} backgroundColor Image background color HEX code
+     * @param {number} size Image size: 1 to 50
+     * @param {number} margin Image margin: 1 to 50
      * @throws {Error}
      */
     setQRCodeFormat(foregroundColor = "000000", backgroundColor = "FFFFFF", size = 5, margin = 1)
@@ -735,7 +724,7 @@ class DocuPass {
 
     /**
      * Check if the names, document number and document type matches between the front and the back of the document when performing dual-side scan. If any information mismatches error 14 will be thrown.
-     * @param {Boolean} enabled
+     * @param {boolean} enabled
      */
     enableDualsideCheck(enabled = false)
     {
@@ -745,7 +734,7 @@ class DocuPass {
 
     /**
      * Check if the document is still valid based on its expiry date.
-     * @param {Boolean} enabled Enable/Disable expiry check
+     * @param {boolean} enabled Enable/Disable expiry check
      */
     verifyExpiry(enabled = false)
     {
@@ -754,7 +743,7 @@ class DocuPass {
 
     /**
      * Check if supplied document or personal number matches with document.
-     * @param {String} documentNumber Document or personal number requiring validation
+     * @param {string} documentNumber Document or personal number requiring validation
      * @throws {Error}
      */
     verifyDocumentNumber(documentNumber = "X1234567")
@@ -771,7 +760,7 @@ class DocuPass {
 
     /**
      * Check if supplied name matches with document.
-     * @param {String} fullName Full name requiring validation
+     * @param {string} fullName Full name requiring validation
      * @throws {Error}
      */
     verifyName(fullName = "ELON MUSK")
@@ -788,7 +777,7 @@ class DocuPass {
 
     /**
      * Check if supplied date of birth matches with document.
-     * @param {String} dob Date of birth in YYYY/MM/DD
+     * @param {string} dob Date of birth in YYYY/MM/DD
      * @throws {Error}
      */
     verifyDOB(dob = "1990/01/01")
@@ -808,7 +797,7 @@ class DocuPass {
 
     /**
      * Check if the document holder is aged between the given range.
-     * @param {String} ageRange Age range, example: 18-40
+     * @param {string} ageRange Age range, example: 18-40
      * @throws {Error}
      */
     verifyAge(ageRange = "18-99")
@@ -828,7 +817,7 @@ class DocuPass {
 
     /**
      * Check if supplied address matches with document.
-     * @param {String} address Address requiring validation
+     * @param {string} address Address requiring validation
      */
     verifyAddress(address = "123 Sample St, California, US")
     {
@@ -842,7 +831,7 @@ class DocuPass {
 
     /**
      * Check if supplied postcode matches with document.
-     * @param {String} postcode Postcode requiring validation
+     * @param {string} postcode Postcode requiring validation
      */
     verifyPostcode(postcode = "90001")
     {
@@ -856,7 +845,7 @@ class DocuPass {
 
     /**
      * Check if the document was issued by specified countries, if not error code 10 will be thrown. Separate multiple values with comma. For example "US,CA" would accept documents from United States and Canada.
-     * @param {String} countryCodes ISO ALPHA-2 Country Code separated by comma
+     * @param {string} countryCodes ISO ALPHA-2 Country Code separated by comma
      */
     restrictCountry(countryCodes = "US,CA,UK")
     {
@@ -870,7 +859,7 @@ class DocuPass {
 
     /**
      * Check if the document was issued by specified state, if not error code 11 will be thrown. Separate multiple values with comma. For example "CA,TX" would accept documents from California and Texas.
-     * @param {String} states State full name or abbreviation separated by comma
+     * @param {string} states State full name or abbreviation separated by comma
      */
     restrictState(states = "CA,TX")
     {
@@ -884,7 +873,7 @@ class DocuPass {
 
     /**
      * Only accept document of specified types. For example, "PD" would accept both passport and drivers license.
-     * @param {String} documentType P: Passport, D: Driver's License, I: Identity Card
+     * @param {string} documentType P: Passport, D: Driver's License, I: Identity Card
      */
     restrictType(documentType = "DIP")
     {
@@ -898,7 +887,7 @@ class DocuPass {
 
     /**
      * Save document image and parsed information in your secured vault. You can list, search and update document entries in your vault through Vault API or web portal.
-     * @param {Boolean} enabled Enable/Disable Vault
+     * @param {boolean} enabled Enable/Disable Vault
      */
     enableVault(enabled = true)
     {
@@ -908,9 +897,9 @@ class DocuPass {
 
     /**
      * Initialize DocuPass API with an API key, company name and optional region (US, EU)
-     * @param {String} apikey You API key
-     * @param {String} companyName Your company name
-     * @param {String} region US/EU
+     * @param {string} apikey You API key
+     * @param {string} companyName Your company name
+     * @param {string} region US/EU
      * @throws {Error}
      */
     constructor(apikey, companyName = "My Company Name", region = "US")
@@ -933,7 +922,7 @@ class DocuPass {
 
     /**
      * Create a DocuPass session for embedding in web page as iframe
-     * @return {Promise&lt;Object>}
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     createIframe(){
@@ -942,7 +931,7 @@ class DocuPass {
 
     /**
      * Create a DocuPass session for users to open on mobile phone, or embedding in mobile app
-     * @return {Promise&lt;Object>}
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     createMobile(){
@@ -951,7 +940,7 @@ class DocuPass {
 
     /**
      * Create a DocuPass session for users to open in any browser
-     * @return {Promise&lt;Object>}
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     createRedirection(){
@@ -960,7 +949,7 @@ class DocuPass {
 
     /**
      * Create a DocuPass Live Mobile verification session for users to open on mobile phone
-     * @return {Promise&lt;Object>}
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     createLiveMobile(){
@@ -974,26 +963,16 @@ class DocuPass {
         payload["apikey"] = this.apikey;
         payload["type"] = docupass_module;
 
+        let apiURL = this.apiendpoint +"docupass/create";
         return new Promise(function (resolve, reject) {
-
-            fetch(this.apiendpoint +"docupass/create", {
-                method: 'post',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            }).then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
+            axios.post(apiURL, payload, {timeout: 15000, headers: { 'content-type': 'application/json' }}).then(function (response) {
+                resolve(response.data);
+            }).catch(function (error) {
+                if (error.response) {
                     reject(new Error('Connecting to API Server failed: HTTP '+  response.status));
+                }else{
+                    reject(new Error('Connecting to API Server failed: '+  error.code + " " + error.message));
                 }
-            }).then((responseJson) => {
-                resolve(responseJson);
-
-            }).catch((error) => {
-                reject(new Error('Connecting to API Server failed: '+  error.text()));
             });
 
 
@@ -1004,7 +983,7 @@ class DocuPass {
 
     /**
      * Validate a data received through DocuPass Callback against DocuPass Server to prevent request spoofing
-     * @return {Promise&lt;Boolean>}
+     * @return {Promise&lt;boolean>}
      * @throws {Error}
      */
     validate(reference, hash){
@@ -1015,27 +994,17 @@ class DocuPass {
             hash: hash
         }
 
-
+        let apiURL = this.apiendpoint +"docupass/validate";
         return new Promise(function (resolve, reject) {
 
-            fetch(this.apiendpoint +"docupass/validate", {
-                method: 'post',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            }).then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
+            axios.post(apiURL, payload, {timeout: 15000, headers: { 'content-type': 'application/json' }}).then(function (response) {
+                resolve(response.data.success === true);
+            }).catch(function (error) {
+                if (error.response) {
                     reject(new Error('Connecting to API Server failed: HTTP '+  response.status));
+                }else{
+                    reject(new Error('Connecting to API Server failed: '+  error.code + " " + error.message));
                 }
-            }).then((responseJson) => {
-                resolve(responseJson.success === true);
-
-            }).catch((error) => {
-                reject(new Error('Connecting to API Server failed: '+  error.text()));
             });
 
 
@@ -1049,8 +1018,8 @@ class Vault {
 
     /**
      * Get a single vault entry
-     * @param {String} id Vault entry ID
-     * @return {Promise&lt;Object>}
+     * @param {string} id Vault entry ID
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     get(id)
@@ -1065,12 +1034,12 @@ class Vault {
 
     /**
      * List multiple vault entries with optional filter, sorting and paging arguments
-     * @param {Object} filter Array of filter statements, refer to https://developer.idanalyzer.com/vaultapi.html for filter construction
-     * @param {String} orderby Field name used to order the results, refer to https://developer.idanalyzer.com/vaultapi.html for available fields
-     * @param {String} sort Sort results by ASC = Ascending, DESC = DESCENDING
-     * @param {Number} limit Number of results to return
-     * @param {Number} offset Offset the first result using specified index
-     * @return {Promise&lt;Object>}
+     * @param {object} filter Array of filter statements, refer to https://developer.idanalyzer.com/vaultapi.html for filter construction
+     * @param {string} orderby Field name used to order the results, refer to https://developer.idanalyzer.com/vaultapi.html for available fields
+     * @param {string} sort Sort results by ASC = Ascending, DESC = DESCENDING
+     * @param {number} limit Number of results to return
+     * @param {number} offset Offset the first result using specified index
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     list(filter = {}, orderby = "createtime", sort = "DESC", limit = 10, offset = 0)
@@ -1083,9 +1052,9 @@ class Vault {
 
     /**
      * List multiple vault entries with optional filter, sorting and paging arguments
-     * @param {String} id Vault entry ID
-     * @param {Object} data Key-value pairs of the field name and its value
-     * @return {Promise&lt;Object>}
+     * @param {string} id Vault entry ID
+     * @param {object} data Key-value pairs of the field name and its value
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     update(id, data = {})
@@ -1104,7 +1073,7 @@ class Vault {
     /**
      * Delete a single or multiple vault entries
      * @param {*} id Vault entry ID or array of IDs
-     * @return {Promise&lt;Object>}
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     delete(id)
@@ -1121,10 +1090,10 @@ class Vault {
 
     /**
      * Delete a single or multiple vault entries
-     * @param {String} id Vault entry ID or array of IDs
-     * @param {String} image Image file path or URL
-     * @param {Number} type Type of image: 0 = document, 1 = person
-     * @return {Promise&lt;Object>} New image object
+     * @param {string} id Vault entry ID or array of IDs
+     * @param {string} image Image file path or URL
+     * @param {number} type Type of image: 0 = document, 1 = person
+     * @return {Promise&lt;object>} New image object
      * @throws {Error}
      */
     addImage(id, image, type = 0)
@@ -1151,9 +1120,9 @@ class Vault {
 
     /**
      * Delete an image from vault
-     * @param {String} vaultId Vault entry ID
-     * @param {String} imageId Image ID
-     * @return {Promise&lt;Object>}
+     * @param {string} vaultId Vault entry ID
+     * @param {string} imageId Image ID
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     deleteImage(vaultId,imageId)
@@ -1172,10 +1141,10 @@ class Vault {
 
     /**
      * Search vault using a person's face image
-     * @param {String} image Face image file path or URL
-     * @param {Number} maxEntry Number of entries to return, 1 to 10.
-     * @param {Number} threshold Minimum confidence score required for face matching
-     * @return {Promise&lt;Object>} List of vault entries
+     * @param {string} image Face image file path or URL
+     * @param {number} maxEntry Number of entries to return, 1 to 10.
+     * @param {number} threshold Minimum confidence score required for face matching
+     * @return {Promise&lt;object>} List of vault entries
      * @throws {Error}
      */
     searchFace(image, maxEntry = 10, threshold = 0.5)
@@ -1196,7 +1165,7 @@ class Vault {
 
     /**
      * Train vault for face search
-     * @return {Promise&lt;Object>}
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     trainFace()
@@ -1207,7 +1176,7 @@ class Vault {
 
     /**
      * Get vault training status
-     * @return {Promise&lt;Object>}
+     * @return {Promise&lt;object>}
      * @throws {Error}
      */
     trainingStatus()
@@ -1219,8 +1188,8 @@ class Vault {
 
     /**
      * Initialize Vault API with an API key, and optional region (US, EU)
-     * @param {String} apikey You API key
-     * @param {String} region US/EU
+     * @param {string} apikey You API key
+     * @param {string} region US/EU
      * @throws {Error}
      */
     constructor(apikey, region = "US")
@@ -1241,32 +1210,26 @@ class Vault {
     _callAPI(action, payload = {}){
 
         payload.apikey = this.apikey;
-
+        let apiURL = this.apiendpoint + "vault/" + action;
         return new Promise(function (resolve, reject) {
 
-            fetch(this.apiendpoint + "vault/" + action, {
-                method: 'post',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            }).then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    reject(new Error('Connecting to API Server failed: HTTP '+  response.status));
-                }
-            }).then((responseJson) => {
 
-                if(responseJson['error']){
-                    reject(new Error(responseJson['error']['code']+": "+responseJson['error']['message']));
+            axios.post(apiURL , payload, {timeout: 60000, headers: { 'content-type': 'application/json' }}).then(function (response) {
+                if(response.data['error']){
+                    reject(new Error(response.data['error']['code']+": "+response.data['error']['message']));
                 }else{
-                    return responseJson;
+                    resolve(response.data) ;
                 }
-            }).catch((error) => {
-                reject(new Error('Connecting to API Server failed: '+  error.text()));
+            }).catch(function (error) {
+                if (error.response) {
+                    reject(new Error('Connecting to API Server failed: HTTP '+  response.status));
+                }else{
+                    reject(new Error('Connecting to API Server failed: '+  error.code + " " + error.message));
+                }
             });
+
+
+
 
 
         });
@@ -1296,7 +1259,7 @@ module.exports = { CoreAPI, DocuPass, Vault }
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sat Feb 27 2021 17:37:35 GMT+0800 (Taipei Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sun Feb 28 2021 05:41:39 GMT+0800 (Taipei Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

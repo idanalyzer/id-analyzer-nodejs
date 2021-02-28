@@ -32,15 +32,15 @@ CoreAPI.scan({ document_primary: "https://www.idanalyzer.com/img/sampleid1.jpg",
     if(!response.error){  
         console.log(response);  
         // All the information about this ID will be returned in an associative array  
-		let data_result = response['result'];  
+        let data_result = response['result'];  
         let authentication_result = response['authentication'];  
         let face_result = response['face'];  
   
         // Print result  
-		console.log(`Hello your name is ${data_result['firstName']} ${data_result['lastName']}`);  
+        console.log(`Hello your name is ${data_result['firstName']} ${data_result['lastName']}`);  
   
         // Parse document authentication results  
-		if(authentication_result){  
+        if(authentication_result){  
             if(authentication_result['score'] > 0.5) {  
                 console.log("The document uploaded is authentic");  
             }else if(authentication_result['score'] > 0.3){  
@@ -48,9 +48,9 @@ CoreAPI.scan({ document_primary: "https://www.idanalyzer.com/img/sampleid1.jpg",
             }else{  
                 console.log("The document uploaded is fake");  
             }  
-	    }  
+        }  
         // Parse biometric verification results  
-		if(face_result){  
+        if(face_result){  
             if(face_result['isIdentical']) {  
                 console.log("Biometric verification PASSED!");  
             }else{  
@@ -67,7 +67,7 @@ CoreAPI.scan({ document_primary: "https://www.idanalyzer.com/img/sampleid1.jpg",
 });
 ```
 
-You could also set additional parameters before performing ID scan:	
+You could also set additional parameters before performing ID scan:
 ```javascript
 CoreAPI.enableVault(true,false,false,false);  // enable vault cloud storage to store document information and image  
 CoreAPI.setBiometricThreshold(0.6); // make face verification more strict 
@@ -200,7 +200,7 @@ Vault.get("vaultid").then(function (response) {
         console.log(response);  
     }else{  
         // Error occurred  
-		console.log(response.error);  
+        console.log(response.error);  
     }  
 }).catch(function (err) {  
     console.log(err.message);  

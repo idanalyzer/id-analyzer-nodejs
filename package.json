@@ -30,12 +30,12 @@
     "pdf417",
     "aamva"
   ],
-  "author": "ID Analyzer <support@idanalyzer.com> (https://www.idanalyzer.com/)",
+  "author": "ID Analyzer <support@idanalyzer.com> (https://www.idanalyzer.com)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/idanalyzer/id-analyzer-nodejs/issues"
   },
-  "homepage": "https://www.idanalyzer.com/",
+  "homepage": "https://www.idanalyzer.com",
   "dependencies": {
     "axios": "^0.21.1"
   }

@@ -17,7 +17,7 @@ npm install idanalyzer
 
 ![Sample ID](https://www.idanalyzer.com/img/sampleid1.jpg)
 
-The sample code below will extract data from this sample Driver License issued in California, and check whether it is real or fake.
+The sample code below will extract data from this sample Driver License issued in California, compare it with a [photo of Lena](https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png), and check whether the ID is real or fake.
 
 ```javascript
 const IDAnalyzer = require("idanalyzer");  
@@ -59,7 +59,7 @@ CoreAPI.scan({ document_primary: "https://www.idanalyzer.com/img/sampleid1.jpg",
             console.log("Confidence Score: "+face_result['confidence']);  
         }  
     }else{  
-        // Error occurred  
+        // API returned an error  
         console.log(response.error);  
     }  
 }).catch(function (err) {  
@@ -185,7 +185,7 @@ DocuPass.verifyAddress("123 Sunny Rd, California"); // Check if address on ID ma
 DocuPass.verifyPostcode("90001"); // check if postcode on ID matches with provided postcode
 ```
 
-Now we need to write a **callback script** or if you prefer to call it a **webhook**, to receive the verification results.  Visit [DocuPass Callback reference](https://developer.idanalyzer.com/docupass_callback.html) to check out the full payload returned by DocuPass.
+Now you should write a **callback script** or a **webhook**, to receive the verification results.  Visit [DocuPass Callback reference](https://developer.idanalyzer.com/docupass_callback.html) to check out the full payload returned by DocuPass. Callback script is generally programmed in a server environment and is beyond the scope of this guide, you can check out our [PHP SDK](https://github.com/idanalyzer/id-analyzer-php-sdk) for creating a callback script in PHP.
 
 For the final step, you could create two web pages (URLS set via setRedirectionURL) that display the results to your user. DocuPass reference will be passed as a GET parameter when users are redirected, for example: https://www.your-website.com/verification_succeeded.php?reference=XXXXXXXXX, you could use the reference code to fetch the results from your database. P.S. We will always send callbacks to your server before redirecting your user to the set URL.
 

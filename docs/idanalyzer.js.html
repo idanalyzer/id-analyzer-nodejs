@@ -28,9 +28,9 @@
         <article>
             <pre class="prettyprint source linenums"><code>const fs = require('fs');
 const axios = require('axios');
-
+const client_library = "nodejs-sdk";
 function isValidURL(string) {
-    let res = string.match(/(http(s)?:\/\/.)(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&amp;//=]*)/g);
+    let res = string.match(/(http(s)?:\/\/.)(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&amp;/=]*)/g);
     return (res !== null)
 }
 function isHexColor (hex) {
@@ -46,12 +46,12 @@ class CoreAPI {
             accuracy: 2,
             authenticate: false,
             authenticate_module: 1,
-            ocr_scaledown: 1500,
+            ocr_scaledown: 2000,
             outputimage: false,
             outputface: false,
             outputmode: "url",
             dualsidecheck: false,
-            verify_expiry: true,
+            verify_expiry: false,
             verify_documentno: "",
             verify_name: "",
             verify_dob: "",
@@ -61,18 +61,19 @@ class CoreAPI {
             country: "",
             region: "",
             type: "",
-            checkblocklist: "",
-            vault_save: "",
-            vault_saveunrecognized: "",
-            vault_noduplicate: "",
-            vault_automerge: "",
+            checkblocklist: false,
+            vault_save: true,
+            vault_saveunrecognized: false,
+            vault_noduplicate: false,
+            vault_automerge: false,
             vault_customdata1: "",
             vault_customdata2: "",
             vault_customdata3: "",
             vault_customdata4: "",
             vault_customdata5: "",
             barcodemode: false,
-            biometric_threshold: 0.4
+            biometric_threshold: 0.4,
+            client: client_library
         }
     }
 
@@ -97,7 +98,7 @@ class CoreAPI {
 
     /**
      * Validate the document to check whether the document is authentic and has not been tampered, and set authentication module
-     * @param {boolean} enabled Enable/Disable Document Authentication
+     * @param {boolean} enabled Enable or disable  Document Authentication
      * @param {*} module Module: 1, 2 or quick
      * @throws {Error}
      */
@@ -117,7 +118,7 @@ class CoreAPI {
      * @param {number} maxScale 0 or 500~4000
      * @throws {Error}
      */
-    setOCRImageResize(maxScale = 1500)
+    setOCRImageResize(maxScale = 2000)
     {
         if(maxScale!==0 &amp;&amp; (maxScale&lt;500 || maxScale>4000)){
             throw new Error("Invalid scale value, 0, or 500 to 4000 accepted.");
@@ -142,9 +143,9 @@ class CoreAPI {
 
     /**
      * Generate cropped image of document and/or face, and set output format [url, base64]
-     * @param {boolean} cropDocument Crop document
-     * @param {boolean} cropFace Crop face
-     * @param {string} outputFormat url/base64
+     * @param {boolean} cropDocument Enable or disable document cropping
+     * @param {boolean} cropFace Enable or disable face cropping
+     * @param {string} outputFormat "url" or "base64", defaults to "url"
      * @throws {Error}
      */
     enableImageOutput(cropDocument = false, cropFace = false, outputFormat = "url")
@@ -170,7 +171,7 @@ class CoreAPI {
 
     /**
      * Check if the document is still valid based on its expiry date.
-     * @param {boolean} enabled Enable/Disable expiry check
+     * @param {boolean} enabled Enable or disable  expiry check
      */
     verifyExpiry(enabled = false)
     {
@@ -322,7 +323,7 @@ class CoreAPI {
 
     /**
      * Disable Visual OCR and read data from AAMVA Barcodes only
-     * @param {boolean} enabled Enable/Disable Barcode Mode
+     * @param {boolean} enabled Enable or disable  Barcode Mode
      */
     enableBarcodeMode(enabled = false)
     {
@@ -333,7 +334,7 @@ class CoreAPI {
 
     /**
      * Save document image and parsed information in your secured vault. You can list, search and update document entries in your vault through Vault API or web portal.
-     * @param {boolean} enabled Enable/Disable Vault
+     * @param {boolean} enabled Enable or disable  Vault
      * @param {boolean} saveUnrecognized Save document image in your vault even if the document cannot be recognized.
      * @param {boolean} noDuplicateImage Prevent duplicated images from being saved.
      * @param {boolean} autoMergeDocument Automatically merge images with same document number into a single entry inside vault.
@@ -364,6 +365,19 @@ class CoreAPI {
         this.config['vault_customdata5'] = data5;
 
     }
+
+
+    /**
+     * Set an API parameter and its value, this function allows you to set any API parameter without using the built-in functions
+     * @param {string} parameterKey Parameter key
+     * @param {string} parameterValue Parameter value
+     * @return void
+     */
+    setParameter(parameterKey, parameterValue)
+    {
+        $this.config[parameterKey] = parameterValue;
+    }
+
 
 
     /**
@@ -399,7 +413,6 @@ class CoreAPI {
      * @throws {Error}
      */
     scan(options){
-
 
         let payload = this.config;
         payload["apikey"] = this.apikey;
@@ -443,6 +456,8 @@ class CoreAPI {
             }
             if(/^([0-9]{4})$/.test(options.biometric_video_passcode) === false){
                 throw new Error("Please provide a 4 digit passcode for video biometric verification.");
+            }else{
+                payload['passcode'] = options.biometric_video_passcode;
             }
         }
 
@@ -491,20 +506,21 @@ class DocuPass {
             "successredir" : "",
             "failredir" : "",
             "customid" : "",
-            "vault_save" : "",
-            "return_documentimage" : "",
-            "return_faceimage" : "",
-            "return_type" : "",
-            "qr_color" : "",
-            "qr_bgcolor" : "",
-            "qr_size" : "",
-            "qr_margin" : "",
+            "vault_save" : true,
+            "return_documentimage" : true,
+            "return_faceimage" : true,
+            "return_type" : 1,
+            "qr_color" : "000000",
+            "qr_bgcolor" : "FFFFFF",
+            "qr_size" : 5,
+            "qr_margin" : 1,
             "welcomemessage" : "",
             "nobranding" : "",
             "logo" : "",
             "language" : "",
             "biometric_threshold" : 0.4,
-            "reusable" : false
+            "reusable" : false,
+            "client": client_library
         }
     }
        
@@ -532,7 +548,7 @@ class DocuPass {
     }
 
     /**
-     * Set a custom string that will be sent back to your server's callback URL, and appended to redirection URLs as a query string. It is useful for identifying your user within your database. This value will be stored under customdata1 under Vault.
+     * Set a custom string that will be sent back to your server's callback URL, and appended to redirection URLs as a query string. It is useful for identifying your user within your database. This value will be stored under docupass_customdata under Vault.
      * @param {string} customID A string used to identify your customer internally
      */
     setCustomID(customID = "12345")
@@ -570,8 +586,29 @@ class DocuPass {
     }
 
     /**
+     * Replace DocuPass page content with your own HTML and CSS, you can download the HTML/CSS template from DocuPass API Reference page
+     * @param {string} url URL pointing to your own HTML page
+     */
+    setCustomHTML(url)
+    {
+        this.config['customhtmlurl'] = url;
+    }
+
+    /**
+     * Set an API parameter and its value, this function allows you to set any API parameter without using the built-in functions
+     * @param {string} parameterKey Parameter key
+     * @param {string} parameterValue Parameter value
+     * @return void
+     */
+    setParameter(parameterKey, parameterValue)
+    {
+        $this.config[parameterKey] = parameterValue;
+    }
+
+
+    /**
      * DocuPass automatically detects user device language and display corresponding language. Set this parameter to override automatic language detection.
-     * @param {string} language Language Code: en fr nl de es zh-TW zh-CN
+     * @param {string} language Check DocuPass API reference for language code
      */
     setLanguage(language)
     {
@@ -581,7 +618,7 @@ class DocuPass {
 
 
     /**
-     * Set server-side callback URL to receive verification results
+     * Set server-side callback/webhook URL to receive verification results
      * @param {string} url Callback URL
      * @throws {Error}
      */
@@ -617,8 +654,8 @@ class DocuPass {
 
     /**
      * Validate the document to check whether the document is authentic and has not been tampered
-     * @param {boolean} enabled Enable/Disable Document Authentication
-     * @param {*} module Module: 1, 2 or quick
+     * @param {boolean} enabled Enable or disable  Document Authentication
+     * @param {*} module Authentication Module: "1", "2" or "quick"
      * @param {number} minimum_score Minimum score to pass verification
      * @throws {Error}
      */
@@ -642,7 +679,7 @@ class DocuPass {
 
     /**
      * Whether users will be required to submit a selfie photo or record selfie video for facial verification.
-     * @param {boolean} enabled Enable/Disable Facial Biometric Verification
+     * @param {boolean} enabled Enable or disable Facial Biometric Verification
      * @param {number} verification_type 1 for photo verification, 2 for video verification
      * @param {number} threshold Minimum confidence score required to pass verification, value between 0 to 1
      * @throws {Error}
@@ -671,12 +708,11 @@ class DocuPass {
 
         this.config['reusable'] = reusable === true;
 
-
     }
 
 
     /**
-     * Enable/Disable returning user uploaded document and face image in callback, and image data format.
+     * Enable or disable  returning user uploaded document and face image in callback, and image data format.
      * @param {boolean} return_documentimage Return document image in callback data
      * @param {boolean} return_faceimage Return face image in callback data
      * @param {number} return_type Image type: 0=base64, 1=url
@@ -724,7 +760,7 @@ class DocuPass {
 
     /**
      * Check if the names, document number and document type matches between the front and the back of the document when performing dual-side scan. If any information mismatches error 14 will be thrown.
-     * @param {boolean} enabled
+     * @param {boolean} enabled Enable or disable dual-side information check
      */
     enableDualsideCheck(enabled = false)
     {
@@ -734,7 +770,7 @@ class DocuPass {
 
     /**
      * Check if the document is still valid based on its expiry date.
-     * @param {boolean} enabled Enable/Disable expiry check
+     * @param {boolean} enabled Enable or disable  expiry check
      */
     verifyExpiry(enabled = false)
     {
@@ -887,7 +923,7 @@ class DocuPass {
 
     /**
      * Save document image and parsed information in your secured vault. You can list, search and update document entries in your vault through Vault API or web portal.
-     * @param {boolean} enabled Enable/Disable Vault
+     * @param {boolean} enabled Enable or disable  Vault
      */
     enableVault(enabled = true)
     {
@@ -983,6 +1019,8 @@ class DocuPass {
 
     /**
      * Validate a data received through DocuPass Callback against DocuPass Server to prevent request spoofing
+     * @param {string} reference DocuPass reference
+     * @param {string} hash DocuPass callback hash
      * @return {Promise&lt;boolean>}
      * @throws {Error}
      */
@@ -991,7 +1029,8 @@ class DocuPass {
         let payload ={
             apikey: this.apikey,
             reference: reference,
-            hash: hash
+            hash: hash,
+            client: client_library
         }
 
         let apiURL = this.apiendpoint +"docupass/validate";
@@ -1078,7 +1117,7 @@ class Vault {
 
 
     /**
-     * List multiple vault entries with optional filter, sorting and paging arguments
+     * Update vault entry with new data
      * @param {string} id Vault entry ID
      * @param {object} data Key-value pairs of the field name and its value
      * @return {Promise&lt;object>}
@@ -1116,8 +1155,8 @@ class Vault {
 
 
     /**
-     * Delete a single or multiple vault entries
-     * @param {string} id Vault entry ID or array of IDs
+     * Add a document or face image into an existing vault entry
+     * @param {string} id Vault entry ID
      * @param {string} image Image file path or URL
      * @param {number} type Type of image: 0 = document, 1 = person
      * @return {Promise&lt;object>} New image object
@@ -1237,9 +1276,9 @@ class Vault {
     _callAPI(action, payload = {}){
 
         payload.apikey = this.apikey;
+        payload.client = client_library;
         let apiURL = this.apiendpoint + "vault/" + action;
         return new Promise(function (resolve, reject) {
-
 
             axios.post(apiURL , payload, {timeout: 60000, headers: { 'content-type': 'application/json' }}).then(function (response) {
                 if(response.data['error']){
@@ -1254,10 +1293,6 @@ class Vault {
                     reject(new Error('Connecting to API Server failed: '+  error.code + " " + error.message));
                 }
             });
-
-
-
-
 
         });
 
@@ -1286,7 +1321,7 @@ module.exports = { CoreAPI, DocuPass, Vault }
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Mon Mar 01 2021 04:36:45 GMT+0800 (Taipei Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Mon Mar 22 2021 03:55:43 GMT+0800 (Taipei Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

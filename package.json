@@ -28,7 +28,9 @@
     "verification",
     "mrz",
     "pdf417",
-    "aamva"
+    "aamva",
+    "pep",
+    "aml"
   ],
   "author": "ID Analyzer <support@idanalyzer.com> (https://www.idanalyzer.com)",
   "license": "MIT",

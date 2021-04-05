@@ -87,6 +87,9 @@ CoreAPI.verifyDocumentNumber("X1234567"); // check if the person's ID number is 
 CoreAPI.verifyName("Elon Musk"); // check if the person is named Elon Musk 
 CoreAPI.verifyAddress("123 Sunny Rd, California"); // Check if address on ID matches with provided address 
 CoreAPI.verifyPostcode("90001"); // check if postcode on ID matches with provided postcode  
+CoreAPI.enableAMLCheck(true); // enable AML/PEP compliance check
+CoreAPI.setAMLDatabase("global_politicians,eu_meps,eu_cors"); // limit AML check to only PEPs
+CoreAPI.enableAMLStrictMatch(true); // make AML matching more strict to prevent false positives
 ```
 
 To **scan both front and back of ID**:
@@ -183,6 +186,13 @@ DocuPass.verifyDocumentNumber("X1234567"); // check if the person's ID number is
 DocuPass.verifyName("Elon Musk"); // check if the person is named Elon Musk  
 DocuPass.verifyAddress("123 Sunny Rd, California"); // Check if address on ID matches with provided address  
 DocuPass.verifyPostcode("90001"); // check if postcode on ID matches with provided postcode
+DocuPass.setCustomHTML("https://www.yourwebsite.com/docupass_template.html"); // use your own HTML/CSS for DocuPass page
+DocuPass.smsVerificationLink("+1333444555"); // Send verification link to user's mobile phone
+DocuPass.enablePhoneVerification(true); // get user to input their own phone number for verification
+DocuPass.verifyPhone("+1333444555"); // verify user's phone number you already have in your database
+DocuPass.enableAMLCheck(true); // enable AML/PEP compliance check
+DocuPass.setAMLDatabase("global_politicians,eu_meps,eu_cors"); // limit AML check to only PEPs
+DocuPass.enableAMLStrictMatch(true); // make AML matching more strict to prevent false positives
 ```
 
 Now you should write a **callback script** or a **webhook**, to receive the verification results.  Visit [DocuPass Callback reference](https://developer.idanalyzer.com/docupass_callback.html) to check out the full payload returned by DocuPass. Callback script is generally programmed in a server environment and is beyond the scope of this guide, you can check out our [PHP SDK](https://github.com/idanalyzer/id-analyzer-php-sdk) for creating a callback script in PHP.
@@ -234,6 +244,40 @@ Alternatively, you may have a DocuPass reference code which you want to search t
 Vault.list({filter: ["docupass_reference=XXXXXXXXXXXXX"]})
 ```
 Learn more about [Vault API](https://developer.idanalyzer.com/vaultapi.html).
+
+## AML API
+
+ID Analyzer provides Anti-Money Laundering AML database consolidated from worldwide authorities,  AML API allows our subscribers to lookup the database using either a name or document number. It allows you to instantly check if a person or company is listed under **any kind of sanction, criminal record or is a politically exposed person(PEP)**, as part of your **AML compliance KYC**. You may also use automated check built within Core API and DocuPass.
+
+```javascript
+const IDAnalyzer = require("idanalyzer");
+
+let aml = new IDAnalyzer.AMLAPI("Your API Key","US");
+
+// Set AML database to only search the PEP category
+aml.setAMLDatabase("global_politicians,eu_cors,eu_meps");
+
+// Search for a politician
+aml.searchByName("Joe Biden").then(function (response) {
+    console.log(response);
+}).catch(function (err) {
+    console.log(err.message);
+});
+
+// Set AML database to all databases
+aml.setAMLDatabase("");
+
+// Search for  a sanctioned ID number
+aml.searchByIDNumber("AALH750218HBCLPC02").then(function (response) {
+    console.log(response);
+}).catch(function (err) {
+    console.log(err.message);
+});
+
+```
+
+Learn more about [AML API](https://developer.idanalyzer.com/amlapi.html).
+
 ## Demo
 Check out **/demo** folder for more JS demos.
 

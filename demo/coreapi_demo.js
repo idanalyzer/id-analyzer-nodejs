@@ -23,6 +23,9 @@ CoreAPI.verifyDocumentNumber("X1234567"); // check if the person's ID number is 
 CoreAPI.verifyName("Elon Musk"); // check if the person is named Elon Musk  
 CoreAPI.verifyAddress("123 Sunny Rd, California"); // Check if address on ID matches with provided address  
 CoreAPI.verifyPostcode("90001"); // check if postcode on ID matches with provided postcode
+CoreAPI.enableAMLCheck(true); // enable AML/PEP compliance check
+CoreAPI.setAMLDatabase("global_politicians,eu_meps,eu_cors"); // limit AML check to only PEPs
+CoreAPI.enableAMLStrictMatch(true); // make AML matching more strict to prevent false positives
 */
 
 

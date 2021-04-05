@@ -46,6 +46,13 @@ DocuPass.verifyDocumentNumber("X1234567"); // check if the person's ID number is
 DocuPass.verifyName("Elon Musk"); // check if the person is named Elon Musk
 DocuPass.verifyAddress("123 Sunny Rd, California"); // Check if address on ID matches with provided address
 DocuPass.verifyPostcode("90001"); // check if postcode on ID matches with provided postcode
+DocuPass.setCustomHTML("https://www.yourwebsite.com/docupass_template.html"); // use your own HTML/CSS for DocuPass page
+DocuPass.smsVerificationLink("+1333444555"); // Send verification link to user's mobile phone
+DocuPass.enablePhoneVerification(true); // get user to input their own phone number for verification
+DocuPass.verifyPhone("+1333444555"); // verify user's phone number you already have in your database
+DocuPass.enableAMLCheck(true); // enable AML/PEP compliance check
+DocuPass.setAMLDatabase("global_politicians,eu_meps,eu_cors"); // limit AML check to only PEPs
+DocuPass.enableAMLStrictMatch(true); // make AML matching more strict to prevent false positives
 */
 
 

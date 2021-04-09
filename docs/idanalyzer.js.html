@@ -132,7 +132,7 @@ class CoreAPI {
     {
         this.config['authenticate'] = enabled === true;
 
-        if(enabled &amp;&amp; module !== 1 &amp;&amp; module !== 2 &amp;&amp; module !== 'quick'){
+        if(enabled &amp;&amp; module != "1" &amp;&amp; module != "2" &amp;&amp; module != 'quick'){
             throw new Error("Invalid authentication module, 1, 2 or 'quick' accepted.");
         }
 
@@ -438,10 +438,10 @@ class CoreAPI {
 
     /**
      * Scan an ID document with Core API, optionally specify document back image, face verification image, face verification video and video passcode
-     * @param {string} options.document_primary Front of Document (File path or URL)
-     * @param {string} options.document_secondary Back of Document (File path or URL)
-     * @param {string} options.biometric_photo Face Photo (File path or URL)
-     * @param {string} options.biometric_video Face Video (File path or URL)
+     * @param {string} options.document_primary Front of Document (File path, base64 content or URL)
+     * @param {string} options.document_secondary Back of Document (File path, base64 content or URL)
+     * @param {string} options.biometric_photo Face Photo (File path, base64 content or URL)
+     * @param {string} options.biometric_video Face Video (File path, base64 content or URL)
      * @param {string} options.biometric_video_passcode Face Video Passcode (4 Digit Number)
      * @return {object}
      * @throws {Error}
@@ -459,14 +459,18 @@ class CoreAPI {
             payload['url'] = options.document_primary;
         }else if(fs.existsSync(options.document_primary)){
             payload['file_base64'] = fs.readFileSync(options.document_primary, {encoding: 'base64'});
+        }else if(options.document_secondary.length>100){
+            payload['file_base64'] = options.document_secondary;
         }else{
             throw new Error("Invalid primary document image, file not found or malformed URL.");
         }
         if(options.document_secondary){
             if(isValidURL(options.document_secondary)){
                 payload['url_back'] = options.document_secondary;
-            }else if(fs.existsSync(options.document_secondary)){
+            }else if(fs.existsSync(options.document_secondary)) {
                 payload['file_back_base64'] = fs.readFileSync(options.document_secondary, {encoding: 'base64'});
+            }else if(options.document_secondary.length>100){
+                payload['file_back_base64'] = options.document_secondary;
             }else {
                 throw new Error("Invalid secondary document image, file not found or malformed URL.");
             }
@@ -476,6 +480,8 @@ class CoreAPI {
                 payload['faceurl'] = options.biometric_photo;
             }else if(fs.existsSync(options.biometric_photo)){
                 payload['face_base64'] = fs.readFileSync(options.biometric_photo, {encoding: 'base64'});
+            }else if(options.document_secondary.length>100){
+                payload['face_base64'] = options.document_secondary;
             }else {
                 throw new Error("Invalid face image, file not found or malformed URL.");
             }
@@ -485,6 +491,8 @@ class CoreAPI {
                 payload['videourl'] = options.biometric_video;
             }else if(fs.existsSync(options.biometric_video)){
                 payload['video_base64'] = fs.readFileSync(options.biometric_video, {encoding: 'base64'});
+            }else if(options.document_secondary.length>100){
+                payload['video_base64'] = options.document_secondary;
             }else {
                 throw new Error("Invalid face video, file not found or malformed URL.");
             }
@@ -497,7 +505,6 @@ class CoreAPI {
 
         let apiURL = this.apiendpoint;
         return new Promise(function (resolve, reject) {
-
             axios.post(apiURL, payload, {timeout: 60000, headers: { 'content-type': 'application/json' }}).then(function (response) {
                 resolve(response.data);
             }).catch(function (error) {
@@ -779,7 +786,7 @@ class DocuPass {
             if(isNaN(parseFloat(minimum_score)) || minimum_score&lt;0 || minimum_score>1){
                 throw new Error("Invalid minimum score, please specify float between 0 to 1.");
             }
-            if(enabled &amp;&amp; module !== 1 &amp;&amp; module !== 2 &amp;&amp; module !== 'quick'){
+            if(enabled &amp;&amp; module != "1" &amp;&amp; module != "2" &amp;&amp; module !== 'quick'){
                 throw new Error("Invalid authentication module, 1, 2 or 'quick' accepted.");
             }
             this.config['authenticate_module'] = module;
@@ -1254,7 +1261,7 @@ class Vault {
     /**
      * Add a document or face image into an existing vault entry
      * @param {string} id Vault entry ID
-     * @param {string} image Image file path or URL
+     * @param {string} image Image file path, base64 content or URL
      * @param {number} type Type of image: 0 = document, 1 = person
      * @return {Promise&lt;object>} New image object
      * @throws {Error}
@@ -1272,6 +1279,8 @@ class Vault {
             payload['imageurl'] = image;
         }else if(fs.existsSync(image)){
             payload['image'] = fs.readFileSync(image, {encoding: 'base64'});
+        }else if(image.length > 100){
+            payload['image'] = image;
         }else{
             throw new Error("Invalid image, file not found or malformed URL.");
         }
@@ -1304,7 +1313,7 @@ class Vault {
 
     /**
      * Search vault using a person's face image
-     * @param {string} image Face image file path or URL
+     * @param {string} image Face image file path, base64 content or URL
      * @param {number} maxEntry Number of entries to return, 1 to 10.
      * @param {number} threshold Minimum confidence score required for face matching
      * @return {Promise&lt;object>} List of vault entries
@@ -1318,6 +1327,8 @@ class Vault {
             payload['imageurl'] = image;
         }else if(fs.existsSync(image)){
             payload['image'] = fs.readFileSync(image, {encoding: 'base64'});
+        }else if(image.length>100){
+            payload['image'] = image;
         }else{
             throw new Error("Invalid image, file not found or malformed URL.");
         }
@@ -1548,7 +1559,7 @@ module.exports = { CoreAPI, DocuPass, Vault, AMLAPI }
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Tue Apr 06 2021 04:55:51 GMT+0800 (Taipei Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sat Apr 10 2021 01:48:05 GMT+0800 (Taipei Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

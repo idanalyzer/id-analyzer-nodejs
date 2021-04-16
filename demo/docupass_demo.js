@@ -53,8 +53,9 @@ DocuPass.verifyPhone("+1333444555"); // verify user's phone number you already h
 DocuPass.enableAMLCheck(true); // enable AML/PEP compliance check
 DocuPass.setAMLDatabase("global_politicians,eu_meps,eu_cors"); // limit AML check to only PEPs
 DocuPass.enableAMLStrictMatch(true); // make AML matching more strict to prevent false positives
+DocuPass.generateContract("Template ID", "PDF", {"somevariable": "somevalue"}); // automate paperwork by generating a document autofilled with ID data
+DocuPass.signContract("Template ID", "PDF", {"somevariable": "somevalue"}); // get user to review and sign legal document prefilled with ID data
 */
-
 
 // Create a verification session for this user
 DocuPass.createMobile().then(function (response) {

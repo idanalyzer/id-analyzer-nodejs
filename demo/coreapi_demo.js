@@ -26,8 +26,8 @@ CoreAPI.verifyPostcode("90001"); // check if postcode on ID matches with provide
 CoreAPI.enableAMLCheck(true); // enable AML/PEP compliance check
 CoreAPI.setAMLDatabase("global_politicians,eu_meps,eu_cors"); // limit AML check to only PEPs
 CoreAPI.enableAMLStrictMatch(true); // make AML matching more strict to prevent false positives
+CoreAPI.generateContract("Template ID", "PDF", {"email":"user@example.com"}); // generate a PDF document autofilled with data from user ID
 */
-
 
 // Analyze ID image by passing URL of the ID image (you may also use a local file)
 CoreAPI.scan({ document_primary: "sampleid.jpg", biometric_photo: "sampleface.png" }).then(function (response) {

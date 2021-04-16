@@ -76,6 +76,9 @@ class CoreAPI {
             "aml_check": false,
             "aml_strict_match": false,
             "aml_database": "",
+            "contract_generate": "",
+            "contract_format": "",
+            "contract_prefill_data": "",
             "client": client_library
         }
     }
@@ -430,10 +433,26 @@ class CoreAPI {
      */
     setParameter(parameterKey, parameterValue)
     {
-        $this.config[parameterKey] = parameterValue;
+        this.config[parameterKey] = parameterValue;
     }
 
 
+    /**
+     * Generate legal document using data from user uploaded ID
+     * @param {string} templateId Contract Template ID displayed under web portal
+     * @param {string} format Output file format: PDF, DOCX or HTML
+     * @param {object} prefillData Object or JSON string, to autofill dynamic fields in contract template.
+     * @throws {Error}
+     */
+    generateContract(templateId, format = "PDF", prefillData = {})
+    {
+        if (!templateId) {
+            throw new Error("Invalid template ID");
+        }
+        this.config['contract_generate'] = templateId;
+        this.config['contract_format'] = format;
+        this.config['contract_prefill_data'] = prefillData;
+    }
 
 
     /**
@@ -568,6 +587,11 @@ class DocuPass {
             "verify_phone": "",
             "sms_verification_link": "",
             "customhtmlurl": "",
+            "contract_generate": "",
+            "contract_sign": "",
+            "contract_format": "",
+            "contract_prefill_data": "",
+            "sms_contract_link": "",
             "client": client_library
         }
     }
@@ -651,6 +675,15 @@ class DocuPass {
     smsVerificationLink(mobileNumber = "+1333444555")
     {
         this.config["sms_verification_link"] = mobileNumber;
+    }
+
+    /**
+     * DocuPass will send SMS to this number containing DocuPass link to review and sign legal document.
+     * @param {string} mobileNumber Mobile number should be provided in international format such as +1333444555
+     */
+    smsContractLink(mobileNumber = "+1333444555")
+    {
+        this.config["sms_contract_link"] = mobileNumber;
     }
 
     /**
@@ -743,7 +776,7 @@ class DocuPass {
      */
     setCallbackURL(url = "https://www.example.com/docupass_callback.php")
     {
-        if(!isValidURL(url)) {
+        if(url &amp;&amp; !isValidURL(url)) {
             throw new Error("Invalid URL, the host does not appear to be a remote host.");
         }
         this.config['callbackurl'] = url;
@@ -758,10 +791,10 @@ class DocuPass {
      */
     setRedirectionURL(successURL = "https://www.example.com/success.php", failURL = "https://www.example.com/failed.php")
     {
-        if(!isValidURL(successURL)) {
+        if(successURL &amp;&amp; !isValidURL(successURL)) {
             throw new Error("Invalid URL format for success URL");
         }
-        if(!isValidURL(failURL)) {
+        if(failURL &amp;&amp; !isValidURL(failURL)) {
             throw new Error("Invalid URL format for fail URL");
         }
 
@@ -908,9 +941,6 @@ class DocuPass {
         }else{
             this.config['verify_documentno'] = documentNumber;
         }
-
-
-
     }
 
     /**
@@ -926,7 +956,6 @@ class DocuPass {
         }else{
             this.config['verify_name'] = fullName;
         }
-
     }
 
 
@@ -1057,8 +1086,78 @@ class DocuPass {
      */
     setParameter(parameterKey, parameterValue)
     {
-        $this.config[parameterKey] = parameterValue;
+        this.config[parameterKey] = parameterValue;
     }
+
+    /**
+     * Generate legal document using data from user uploaded ID
+     * @param {string} templateId Contract Template ID displayed under web portal
+     * @param {string} format Output file format: PDF, DOCX or HTML
+     * @param {object} prefillData Object or JSON string, to autofill dynamic fields in contract template.
+     * @throws {Error}
+     */
+    generateContract(templateId, format = "PDF", prefillData = {})
+    {
+        if (!templateId) {
+            throw new Error("Invalid template ID");
+        }
+        this.config['contract_sign'] = "";
+        this.config['contract_generate'] = templateId;
+        this.config['contract_format'] = format;
+        this.config['contract_prefill_data'] = prefillData;
+    }
+
+    /**
+     * Have user review and sign autofilled legal document after successful identity verification
+     * @param {string} templateId Contract Template ID displayed under web portal
+     * @param {string} format Output file format: PDF, DOCX or HTML
+     * @param {object} prefillData Object or JSON string, to autofill dynamic fields in contract template.
+     * @throws {Error}
+     */
+    signContract(templateId, format = "PDF", prefillData = {})
+    {
+        if (!templateId) {
+            throw new Error("Invalid template ID");
+        }
+        this.config['contract_generate'] = "";
+        this.config['contract_sign'] = templateId;
+        this.config['contract_format'] = format;
+        this.config['contract_prefill_data'] = prefillData;
+    }
+
+    /**
+     * Create a DocuPass signature session for user to review and sign legal document without identity verification
+     * @param {string} templateId Contract Template ID displayed under web portal
+     * @param {string} format Output file format: PDF, DOCX or HTML
+     * @param {object} prefillData Object or JSON string, to autofill dynamic fields in contract template.
+     * @return {Promise&lt;object>}
+     * @throws {Error}
+     */
+    createSignature(templateId, format = "PDF", prefillData = {}){
+
+        let payload = this.config;
+        payload["apikey"] = this.apikey;
+        payload["template_id"] = templateId;
+        payload['contract_format'] = format;
+        payload['contract_prefill_data'] = prefillData;
+
+        let apiURL = this.apiendpoint +"docupass/sign";
+        return new Promise(function (resolve, reject) {
+            axios.post(apiURL, payload, {timeout: 15000, headers: { 'content-type': 'application/json' }}).then(function (response) {
+                resolve(response.data);
+            }).catch(function (error) {
+                if (error.response) {
+                    reject(new Error('Connecting to API Server failed: HTTP '+  response.status));
+                }else{
+                    reject(new Error('Connecting to API Server failed: '+  error.code + " " + error.message));
+                }
+            });
+
+
+        });
+
+    }
+
 
     /**
      * Create a DocuPass session for embedding in web page as iframe
@@ -1559,7 +1658,7 @@ module.exports = { CoreAPI, DocuPass, Vault, AMLAPI }
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sat Apr 10 2021 01:48:05 GMT+0800 (Taipei Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sat Apr 17 2021 04:17:06 GMT+0800 (Taipei Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

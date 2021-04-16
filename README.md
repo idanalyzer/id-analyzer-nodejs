@@ -13,7 +13,7 @@ npm install idanalyzer
 
 
 ## Core API
-[ID Analyzer Core API](https://www.idanalyzer.com/products/id-analyzer-core-api.html) allows you to perform OCR data extraction, facial biometric verification, identity verification, age verification, document cropping, document authentication (fake ID check) using an ID image (JPG, PNG, PDF accepted) and user selfie photo or video. Core API has great global coverage, supporting over 98% of the passports, driver licenses and identification cards currently being circulated around the world.
+[ID Analyzer Core API](https://www.idanalyzer.com/products/id-analyzer-core-api.html) allows you to perform OCR data extraction, facial biometric verification, identity verification, age verification, document cropping, document authentication (fake ID check), and paperwork automation using an ID image (JPG, PNG, PDF accepted) and user selfie photo or video. Core API has great global coverage, supporting over 98% of the passports, driver licenses and identification cards currently being circulated around the world.
 
 ![Sample ID](https://www.idanalyzer.com/img/sampleid1.jpg)
 
@@ -90,6 +90,7 @@ CoreAPI.verifyPostcode("90001"); // check if postcode on ID matches with provide
 CoreAPI.enableAMLCheck(true); // enable AML/PEP compliance check
 CoreAPI.setAMLDatabase("global_politicians,eu_meps,eu_cors"); // limit AML check to only PEPs
 CoreAPI.enableAMLStrictMatch(true); // make AML matching more strict to prevent false positives
+CoreAPI.generateContract("Template ID", "PDF", {"email":"user@example.com"}); // generate a PDF document autofilled with data from user ID
 ```
 
 To **scan both front and back of ID**:
@@ -193,13 +194,74 @@ DocuPass.verifyPhone("+1333444555"); // verify user's phone number you already h
 DocuPass.enableAMLCheck(true); // enable AML/PEP compliance check
 DocuPass.setAMLDatabase("global_politicians,eu_meps,eu_cors"); // limit AML check to only PEPs
 DocuPass.enableAMLStrictMatch(true); // make AML matching more strict to prevent false positives
+DocuPass.generateContract("Template ID", "PDF", {"somevariable": "somevalue"}); // automate paperwork by generating a document autofilled with ID data
+DocuPass.signContract("Template ID", "PDF", {"somevariable": "somevalue"}); // get user to review and sign legal document prefilled with ID data
 ```
 
 Now you should write a **callback script** or a **webhook**, to receive the verification results.  Visit [DocuPass Callback reference](https://developer.idanalyzer.com/docupass_callback.html) to check out the full payload returned by DocuPass. Callback script is generally programmed in a server environment and is beyond the scope of this guide, you can check out our [PHP SDK](https://github.com/idanalyzer/id-analyzer-php-sdk) for creating a callback script in PHP.
 
 For the final step, you could create two web pages (URLS set via setRedirectionURL) that display the results to your user. DocuPass reference will be passed as a GET parameter when users are redirected, for example: https://www.your-website.com/verification_succeeded.php?reference=XXXXXXXXX, you could use the reference code to fetch the results from your database. P.S. We will always send callbacks to your server before redirecting your user to the set URL.
 
+## DocuPass Signature API
+
+You can get user to review and remotely sign legal document in DocuPass without identity verification, to do so you need to create a DocuPass Signature session.
+
+```javascript
+const IDAnalyzer = require("idanalyzer");
+
+let DocuPass = new IDAnalyzer.DocuPass("Your API Key","Your Company Name Inc.","US");
+
+// We need to set an identifier so that we know internally who is signing the document, this string will be returned in the callback. You can use your own user/customer id.
+DocuPass.setCustomID("CUSTOMER1234");
+
+// Enable vault cloud storage to store signed document
+DocuPass.enableVault(true);
+
+// Set a callback URL where signed document will be sent, you can use docupass_callback.php under this folder as a template to receive the result
+DocuPass.setCallbackURL("https://www.your-website.com/docupass_callback.php");
+
+// We want to redirect user back to your website when they are done with document signing, there will be no fail URL unlike identity verification
+DocuPass.setRedirectionURL("https://www.your-website.com/document_signed.html","");
+
+/*
+ * more settings
+DocuPass.setReusable(true); // allow DocuPass URL/QR Code to be used by multiple users
+DocuPass.setLanguage("en"); // override auto language detection
+DocuPass.setQRCodeFormat("000000","FFFFFF",5,1); // generate a QR code using custom colors and size
+DocuPass.hideBrandingLogo(true); // hide branding footer
+DocuPass.setCustomHTML("https://www.yourwebsite.com/docupass_template.html"); // use your own HTML/CSS for DocuPass page
+DocuPass.smsContractLink("+1333444555"); // Send signing link to user's mobile phone
+*/
+
+// Assuming in your contract template you have a dynamic field %{email} and you want to fill it with user email
+let prefill = {
+    "email": "user@example.com"
+};
+
+// Create a signature session
+DocuPass.createSignature("Template ID", "PDF", prefill).then(function (response) {
+    if(!response.error){
+        console.log(response);
+
+        console.log("Scan the QR Code below to sign document: ");
+        console.log(response['qrcode']);
+        console.log("Or open your mobile browser and navigate to: ");
+        console.log(response['url']);
+    }else{
+        // Error occurred
+        console.log(response.error);
+    }
+
+
+}).catch(function (err) {
+    console.log(err.message);
+});
+```
+
+Once user has reviewed and signed the document, the signed document will be sent back to your server using callback under the `contract.document_url` field, the contract will also be saved to vault if you have enabled vault.
+
 ## Vault API
+
 ID Analyzer provides free cloud database storage (Vault) for you to store data obtained through Core API and DocuPass. You can set whether you want to store your user data into Vault through `enableVault` while making an API request with PHP SDK. Data stored in Vault can be looked up through [Web Portal](https://portal.idanalyzer.com) or via Vault API.
 
 If you have enabled Vault, Core API and DocuPass will both return a vault entry identifier string called `vaultid`,  you can use the identifier to look up your user data:

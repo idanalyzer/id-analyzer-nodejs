@@ -25,7 +25,7 @@ const IDAnalyzer = require("idanalyzer");
 let CoreAPI = new IDAnalyzer.CoreAPI("Your API Key","US");  
 
 // Enable authentication module v2 to check if ID is authentic
-CoreAPI.enableAuthentication(true, 2);  
+CoreAPI.enableAuthentication(true, "2");  
 
 // Analyze ID image by passing URL of the ID image (you may also use a local file)  
 CoreAPI.scan({ document_primary: "https://www.idanalyzer.com/img/sampleid1.jpg", biometric_photo: "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png" }).then(function (response) {  

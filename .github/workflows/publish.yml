@@ -1,0 +1,40 @@
+name: Publish to npm
+
+# Publishes the legacy v1 package `idanalyzer` to npm when a version tag (v*) is pushed.
+# Uses npm Trusted Publishing (OIDC) — no NPM_TOKEN secret required.
+# Configure the trusted publisher on npmjs.com for package `idanalyzer`:
+# Publisher=GitHub Actions, Org=idanalyzer, Repo=id-analyzer-nodejs,
+# Workflow=publish.yml, Environment=(blank).
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # required for OIDC trusted publishing + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing requires npm >= 11.5.1
+      - run: npm install -g npm@latest
+
+      - name: Publish (skip if version already exists)
+        run: |
+          VER=$(node -p "require('./package.json').version")
+          if npm view "idanalyzer@${VER}" version >/dev/null 2>&1; then
+            echo "idanalyzer@${VER} already published — skipping."
+          else
+            npm publish --provenance --access public
+          fi

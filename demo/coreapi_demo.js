@@ -2,7 +2,7 @@ const IDAnalyzer = require("idanalyzer");
 
 let CoreAPI = new IDAnalyzer.CoreAPI("Your API Key","US");
 
-CoreAPI.enableAuthentication(true, 2);
+CoreAPI.enableAuthentication(true, "2");
 
 /*
 CoreAPI.enableVault(true,false,false,false);  // enable vault cloud storage to store document information and image
